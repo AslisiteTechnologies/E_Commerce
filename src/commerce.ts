@@ -1,0 +1,7 @@
+import type {Product} from './catalog';
+export type SortMode='featured'|'price-asc'|'price-desc'|'popular'|'rating'|'newest';
+export function discountPercent(price:number,original?:number){return original&&original>price?Math.round((1-price/original)*100):0;}
+export function cartTotals(lines:{id:string;qty:number}[],catalog:Product[],threshold=4999){const subtotal=lines.reduce((sum,line)=>sum+(catalog.find(p=>p.id===line.id)?.price||0)*line.qty,0);const savings=lines.reduce((sum,line)=>{const p=catalog.find(x=>x.id===line.id);return sum+Math.max(0,(p?.originalPrice||p?.price||0)-(p?.price||0))*line.qty;},0);const shipping=subtotal===0||subtotal>=threshold?0:199;return{subtotal,savings,shipping,total:subtotal+shipping};}
+export function filterProducts(items:Product[],options:{category?:string;query?:string;brand?:string[];maxPrice?:number}={}){const q=options.query?.trim().toLowerCase();return items.filter(p=>(!options.category||p.category===options.category)&&(!q||(p.name+' '+p.brand+' '+p.category).toLowerCase().includes(q))&&(!options.maxPrice||p.price<=options.maxPrice)&&(!options.brand?.length||options.brand.includes(p.brand)));}
+export function sortProducts(items:Product[],mode:SortMode){return [...items].sort((a,b)=>mode==='price-asc'?a.price-b.price:mode==='price-desc'?b.price-a.price:mode==='rating'?b.rating-a.rating:mode==='newest'?b.created-a.created:mode==='popular'?b.reviews-a.reviews:0);}
+export function toggleCompare(ids:string[],id:string,max=4){return ids.includes(id)?ids.filter(x=>x!==id):ids.length>=max?ids:[...ids,id];}
